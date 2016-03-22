@@ -1,6 +1,6 @@
 package renderer.server;
 
-import game.Player;
+import game.entities.Player;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

@@ -1,7 +1,7 @@
 package main;
 
 import game.Game;
-import game.Player;
+import game.entities.Player;
 import renderer.client.DisplayManager;
 import renderer.server.PlayerTerminal;
 

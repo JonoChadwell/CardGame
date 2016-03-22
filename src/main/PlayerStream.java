@@ -1,10 +1,11 @@
 package main;
 
-import game.Card;
-import game.Player;
 import game.actions.Action;
 import game.actions.MoveAction;
 import game.actions.PlaceAction;
+import game.cards.Card;
+import game.entities.FactionMember;
+import game.entities.Player;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -70,19 +71,39 @@ public class PlayerStream {
                   }
                   write(queueText.toString());
                }
-            } else if (first.equalsIgnoreCase("status") || first.equalsIgnoreCase("s")) {
-               write("Deck size: " + player.getDeckSize());
+            } else if (first.equalsIgnoreCase("cards") || first.equalsIgnoreCase("c")) {
+               output.println("Deck size: " + player.getDeckSize());
                if (player.getHand().isEmpty()) {
-                  write("Empty Hand");
+                  output.println("Empty Hand");
                } else {
-                  StringBuilder handText = new StringBuilder();
-                  handText.append("Hand:\n");
+                  output.println("Hand:");
                   int i = 0;
                   for (Card c : player.getHand()) {
-                     handText.append("   " + i++ + " " + c + "\n");
+                     output.println("   " + i++ + " " + c);
                   }
-                  write(handText.toString());
                }
+               for (Card card : player.clearBurntCards()) {
+                  output.println("Card Destroyed: " + card);
+               }
+               output.flush();
+            } else if (first.equalsIgnoreCase("status") || first.equalsIgnoreCase("s")) {
+               output.println("Deck size: " + player.getDeckSize());
+               if (player.getHand().isEmpty()) {
+                  output.println("Empty Hand");
+               } else {
+                  output.println("Hand:");
+                  int i = 0;
+                  for (Card c : player.getHand()) {
+                     output.println("   " + i++ + " " + c);
+                  }
+               }
+               for (Card card : player.clearBurntCards()) {
+                  output.println("Card Destroyed: " + card);
+               }
+               for (FactionMember ally : player.clearSlainAllies()) {
+                  output.println("Ally Destroyed: " + ally);
+               }
+               output.flush();
             } else if (first.equalsIgnoreCase("place") || first.equalsIgnoreCase("p")) {
                int card = lineScanner.nextInt();
                int x = lineScanner.nextInt();
@@ -98,6 +119,12 @@ public class PlayerStream {
                   } else {
                      output.println("   " + loc + " : " + ent);
                   }
+               });
+               output.flush();
+            } else if (first.equalsIgnoreCase("allies") || first.equalsIgnoreCase("a")) {
+               output.println("Allies:");
+               player.getAllies().forEach(ally -> {
+                  output.println("   " + ally);
                });
                output.flush();
             } else if (first.equalsIgnoreCase("help") || first.equalsIgnoreCase("h")) {

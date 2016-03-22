@@ -1,12 +1,12 @@
 package renderer.client;
 
-import game.Entity;
 import game.Game;
-import game.Grid;
-import game.Location;
-import game.Player;
-import game.Wall;
-import game.cards.BasicCard;
+import game.cards.BasicSoldier;
+import game.entities.Entity;
+import game.entities.Player;
+import game.entities.Wall;
+import game.grid.Grid;
+import game.grid.Location;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -94,7 +94,7 @@ public class GridDisplay {
       } else if (e instanceof Player) {
          g.setColor(Color.BLUE);
          g.fillOval(x + 3, y + 3, GRID_SIZE - 5, GRID_SIZE - 5);
-      } else if (e instanceof BasicCard) {
+      } else if (e instanceof BasicSoldier) {
          g.setColor(Color.RED);
          g.fillOval(x + 3, y + 3, GRID_SIZE - 5, GRID_SIZE - 5);
       }

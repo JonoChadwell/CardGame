@@ -1,4 +1,4 @@
-package game;
+package game.cards;
 
 public interface Card {
    public double getCastRange();

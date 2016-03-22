@@ -1,5 +1,10 @@
 package game;
 
+import game.entities.BreakableWall;
+import game.entities.Player;
+import game.entities.Wall;
+import game.grid.Grid;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;

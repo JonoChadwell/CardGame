@@ -1,6 +1,6 @@
-package game;
+package game.cards;
 
-import game.cards.Trainee;
+import game.entities.Player;
 
 import java.util.ArrayList;
 import java.util.List;

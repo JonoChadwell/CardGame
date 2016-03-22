@@ -1,23 +1,34 @@
-package game;
+package game.entities;
 
+import game.GameException;
 import game.actions.Action;
 import game.actions.RestAction;
+import game.cards.Card;
+import game.cards.Deck;
+import game.cards.Hand;
+import game.grid.Vector;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Player implements Entity, Summoner, FactionMember {
    private Hand hand;
    private Deck deck;
-   private LinkedList<Action> pendingActions = new LinkedList<>();
    private PrintWriter output;
    private String name;
    private Map<Vector, Entity> vision = new HashMap<>();
-   
+   private LinkedList<Card> burnt = new LinkedList<>();
+   private LinkedList<Action> pendingActions = new LinkedList<>();
+   private LinkedList<FactionMember> slainAllies = new LinkedList<>();
+   private Set<FactionMember> allies = new HashSet<>();
+   private boolean living = true;
+
    public Player(String name) {
       this.name = name;
       deck = Deck.buildRandomDeck(this);
@@ -26,7 +37,7 @@ public class Player implements Entity, Summoner, FactionMember {
          hand.add(deck.draw());
       }
    }
-   
+
    public void queueAction(Action a) {
       pendingActions.add(a);
    }
@@ -38,50 +49,50 @@ public class Player implements Entity, Summoner, FactionMember {
          write("Performing Action: " + action);
          return action;
       } else {
-         //write("No action queued, passing turn");
+         // write("No action queued, passing turn");
          return new RestAction();
       }
    }
-   
+
    public void setOutput(PrintWriter output) {
       this.output = output;
    }
-   
+
    private void write(String message) {
       if (output != null) {
          output.println(message);
          output.flush();
       }
    }
-   
+
    public int getDeckSize() {
       return deck.size();
    }
-   
+
    public Hand getHand() {
       return hand;
    }
-   
+
    @Override
    public void actionSuceeded(Action a) {
       write("Action Sucessful: " + a);
    }
-   
+
    @Override
    public void actionFailed(Action a) {
       write("Action Failed: " + a);
    }
-   
+
    @Override
    public void actionFailed(Action a, String reason) {
       write("Action Failed: " + a + " reason: " + reason);
    }
-   
+
    @Override
    public String toString() {
       return "Player " + name;
    }
-   
+
    public List<Action> getQueue() {
       return new ArrayList<>(pendingActions);
    }
@@ -94,7 +105,7 @@ public class Player implements Entity, Summoner, FactionMember {
          throw new GameException("Unable to summon card " + index);
       }
    }
-   
+
    @Override
    public void summonSucceeded(int index) {
       hand.remove(index);
@@ -108,16 +119,62 @@ public class Player implements Entity, Summoner, FactionMember {
    public void clearVision() {
       vision.clear();
    }
-   
+
    public void addVision(Map<Vector, Entity> vis) {
       vision.putAll(vis);
    }
-   
+
    public Map<Vector, Entity> getVision() {
       return vision;
    }
 
    public String getName() {
       return name;
+   }
+
+   @Override
+   public boolean isDead() {
+      return !living;
+   }
+
+   @Override
+   public void takeDamage(int amount) {
+      while (amount-- > 0) {
+         if (deck.size() > 0) {
+            burnt.add(deck.remove(deck.size() - 1));
+         } else {
+            living = false;
+            break;
+         }
+      }
+   }
+
+   public List<Card> getBurntCards() {
+      return burnt;
+   }
+
+   public Set<Card> clearBurntCards() {
+      Set<Card> rtn = new HashSet<>();
+      while(!burnt.isEmpty()) {
+         rtn.add(burnt.removeFirst());
+      }
+      return rtn;
+   }
+
+   public List<FactionMember> getSlainAllies() {
+      return slainAllies;
+   }
+
+   public Set<FactionMember> clearSlainAllies() {
+      Set<FactionMember> rtn = new HashSet<>();
+      while(!slainAllies.isEmpty()) {
+         rtn.add(slainAllies.removeFirst());
+      }
+      return rtn;
+   }
+   
+   public Set<FactionMember> getAllies() {
+      allies.removeIf(ally -> ally.isDead());
+      return allies;
    }
 }

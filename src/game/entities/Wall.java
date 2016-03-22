@@ -1,4 +1,4 @@
-package game;
+package game.entities;
 
 import game.actions.Action;
 import game.actions.RestAction;

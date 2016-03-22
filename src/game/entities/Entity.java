@@ -1,4 +1,4 @@
-package game;
+package game.entities;
 
 import game.actions.Action;
 
@@ -17,5 +17,7 @@ public interface Entity {
    public default void actionFailed(Action a, String reason) {
       actionFailed(a);
    }
-   public default double getViewDistance() {return 10;}
+   public default double getViewDistance() {return 5;}
+   public default void takeDamage(int amount) {}
+   public default boolean isDead() {return false;}
 }

@@ -1,9 +1,9 @@
 package game.cards;
 
-import game.Player;
+import game.entities.Player;
 
 
-public class Trainee extends BasicCard {
+public class Trainee extends BasicSoldier {
 
    public Trainee(Player faction) {
       super(3, 2, 1, 3, 1, faction);

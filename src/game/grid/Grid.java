@@ -1,9 +1,16 @@
-package game;
+package game.grid;
 
+import game.GameException;
 import game.actions.Action;
 import game.actions.AttackAction;
 import game.actions.MoveAction;
 import game.actions.PlaceAction;
+import game.cards.Card;
+import game.entities.Attacker;
+import game.entities.Entity;
+import game.entities.FactionMember;
+import game.entities.Player;
+import game.entities.Summoner;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -90,10 +97,19 @@ public class Grid {
          this.entity = entity;
       }
    }
+   
+   private static class AttackData {
+      public Attacker source;
+
+      public AttackData(Attacker source) {
+         this.source = source;
+      }
+   }
 
    public void performGameTick() {
       List<MovementData> movements = new ArrayList<>();
       List<SummonData> summons = new ArrayList<>();
+      List<AttackData> attacks = new ArrayList<>();
 
       objects.forEach((ent, loc) -> {
          int cooldown = cooldowns.get(ent);
@@ -111,19 +127,23 @@ public class Grid {
                   ent.actionFailed(a);
                }
             } else if (a instanceof AttackAction) {
-
+               if (ent instanceof Attacker) {
+                  attacks.add(new AttackData((Attacker) ent));
+               } else {
+                  ent.actionFailed(a, "This unit cannot attack");
+               }
             } else if (a instanceof PlaceAction) {
                PlaceAction pa = (PlaceAction) a;
                try {
                   Entity toPlace = ((Summoner) ent).getSummon(pa.getIndex());
                   Location target = new Location(loc.getRow() - pa.getY(), loc.getCol() + pa.getX());
-                  if (occupied(target)) {
-                     ent.actionFailed(pa, "Location Occupied");
-                  } else {
-                     ent.actionSuceeded(pa);
-                     ((Summoner) ent).summonSucceeded(pa.getIndex());
-                     summons.add(new SummonData(target, toPlace));
+                  if (toPlace instanceof Card && target.distance(loc) > ((Card) toPlace).getCastRange()) {
+                     throw new GameException("Target too far away");
                   }
+                  checkValid(target);
+                  ent.actionSuceeded(pa);
+                  ((Summoner) ent).summonSucceeded(pa.getIndex());
+                  summons.add(new SummonData(target, toPlace));
                } catch (GameException ex) {
                   ent.actionFailed(pa, ex.getMessage());
                }
@@ -132,25 +152,59 @@ public class Grid {
             cooldowns.put(ent, cooldown - 1);
          }
       });
+      //TODO: fix collisions
       for (SummonData sd : summons) {
          objects.put(sd.entity, sd.to);
          cooldowns.put(sd.entity, sd.entity.getSummoningDuration());
       }
+      //TODO: fix collisions
       for (MovementData md : movements) {
          objects.put(md.entity, md.to);
       }
+      for (AttackData ad : attacks) {
+         FactionMember af;
+         if (ad.source instanceof FactionMember) {
+            af = (FactionMember) ad.source;
+         } else {
+            af = null;
+         }
+         getEntitiesInArea((Entity) ad.source, ad.source.getAttackRange()).forEach(entity -> {
+            if (ad.source != entity && (af == null || !af.hasSameFaction(entity))) {
+               entity.takeDamage(ad.source.getAttackDamage());
+            }
+         });
+      }
+      removeDeadObjects();
+      updatePlayerData();
+      if (tickEndCallback != null) {
+         tickEndCallback.run();
+      }
+   }
+   
+   private void removeDeadObjects() {
+      objects.entrySet().forEach(entry -> {
+         if (entry.getKey().isDead() && entry.getKey() instanceof FactionMember) {
+            FactionMember fm = (FactionMember) entry.getKey();
+            fm.getFactionOwner().getSlainAllies().add(fm);
+         }
+      });
+      objects.entrySet().removeIf(entry -> entry.getKey().isDead());
+   }
+   
+   private void updatePlayerData() {
       objects.forEach((ent, loc) -> {
          if (ent instanceof FactionMember) {
             Player faction = ((FactionMember) ent).getFactionOwner();
+            Set<FactionMember> members = faction.getAllies();
+            if (!members.contains(ent)) {
+               members.add((FactionMember) ent);
+            }
             if (objects.containsKey(faction)) {
                Location playerLoc = objects.get(faction);
                faction.addVision(translate(getVisibleEntities(ent), playerLoc));
             }
          }
       });
-      if (tickEndCallback != null) {
-         tickEndCallback.run();
-      }
    }
 
    private Map<Vector, Entity> translate(Map<Location, Entity> map, Location center) {

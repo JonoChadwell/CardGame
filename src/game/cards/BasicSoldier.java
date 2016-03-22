@@ -1,14 +1,13 @@
 package game.cards;
 
-import game.Attacker;
-import game.Card;
-import game.Entity;
-import game.FactionMember;
-import game.Player;
 import game.actions.Action;
 import game.actions.AttackAction;
+import game.entities.Attacker;
+import game.entities.Entity;
+import game.entities.FactionMember;
+import game.entities.Player;
 
-public class BasicCard implements Card, Entity, Attacker, FactionMember {
+public class BasicSoldier implements Card, Entity, Attacker, FactionMember {
    private final double castRange;
    private final double attackRange;
    private final int attackDamage;
@@ -17,7 +16,7 @@ public class BasicCard implements Card, Entity, Attacker, FactionMember {
    private int damage = 0;
    private Player faction;
    
-   public BasicCard(double castRange, double attackRange, int attackDamage, int health, int cost, Player faction) {
+   public BasicSoldier(double castRange, double attackRange, int attackDamage, int health, int cost, Player faction) {
       this.castRange = castRange;
       this.attackRange = attackRange;
       this.attackDamage = attackDamage;
@@ -68,5 +67,15 @@ public class BasicCard implements Card, Entity, Attacker, FactionMember {
    @Override
    public Player getFactionOwner() {
       return faction;
+   }
+   
+   @Override
+   public void takeDamage(int amount) {
+      damage += amount;
+   }
+   
+   @Override
+   public boolean isDead() {
+      return health <= damage;
    }
 }
