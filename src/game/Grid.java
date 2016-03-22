@@ -23,18 +23,18 @@ public class Grid {
    private BiMap<Entity, Location> objects;
    private Map<Entity, Integer> cooldowns;
    private Runnable tickEndCallback;
-   
+
    public Grid(int size) {
       this(size, size);
    }
-   
+
    public Grid(int width, int height) {
       this.width = width;
       this.height = height;
       objects = HashBiMap.create();
       cooldowns = new HashMap<>();
    }
-   
+
    public boolean occupied(Location loc) {
       return objects.containsValue(loc);
    }
@@ -42,7 +42,7 @@ public class Grid {
    public void place(int i, int j, Entity obj) {
       place(new Location(i, j), obj);
    }
-   
+
    public void place(Location loc, Entity obj) {
       if (occupied(loc)) {
          throw new GameException("Location already occupied");
@@ -74,17 +74,17 @@ public class Grid {
    private static class MovementData {
       public Location to;
       public Entity entity;
-      
+
       public MovementData(Location to, Entity entity) {
          this.to = to;
          this.entity = entity;
       }
    }
-   
+
    private static class SummonData {
       public Location to;
       public Entity entity;
-      
+
       public SummonData(Location to, Entity entity) {
          this.to = to;
          this.entity = entity;
@@ -94,7 +94,7 @@ public class Grid {
    public void performGameTick() {
       List<MovementData> movements = new ArrayList<>();
       List<SummonData> summons = new ArrayList<>();
-      
+
       objects.forEach((ent, loc) -> {
          int cooldown = cooldowns.get(ent);
          if (cooldown <= 1) {
@@ -111,7 +111,7 @@ public class Grid {
                   ent.actionFailed(a);
                }
             } else if (a instanceof AttackAction) {
-               
+
             } else if (a instanceof PlaceAction) {
                PlaceAction pa = (PlaceAction) a;
                try {
@@ -152,7 +152,7 @@ public class Grid {
          tickEndCallback.run();
       }
    }
-   
+
    private Map<Vector, Entity> translate(Map<Location, Entity> map, Location center) {
       Map<Vector, Entity> rtn = new HashMap<>();
       map.forEach((loc, ent) -> {
@@ -160,42 +160,41 @@ public class Grid {
       });
       return rtn;
    }
-   
+
    public void addTickEndCallback(Runnable tickEndCallback) {
       if (this.tickEndCallback == null) {
          this.tickEndCallback = tickEndCallback;
       } else {
          final Runnable oldCallback = this.tickEndCallback;
-         this.tickEndCallback = () -> {oldCallback.run(); tickEndCallback.run();};
+         this.tickEndCallback = () -> {
+            oldCallback.run();
+            tickEndCallback.run();
+         };
       }
    }
-   
+
    public Location getLocation(Entity entity) {
       return objects.get(entity);
    }
-   
+
    public List<Entity> getEntitiesInArea(Entity center, double radius) {
-      return objects
-            .entrySet()
-            .stream()
-            .filter((entry) -> entry.getKey() != center && objects.get(center).distance(entry.getValue()) < radius)
-            .map((entry) -> entry.getKey())
-            .collect(Collectors.toList());
+      return objects.entrySet().stream().filter((entry) -> entry.getKey() != center && objects.get(center).distance(entry.getValue()) < radius)
+            .map((entry) -> entry.getKey()).collect(Collectors.toList());
    }
-   
+
    private Map<Location, Entity> getVisibleEntities(Entity viewer) {
-     double dist = viewer.getViewDistance();
-     int bound = (int) Math.ceil(dist);
-     Map<Location, Entity> visible = new HashMap<>();
-     Location source = objects.get(viewer);
-     visible.put(source, viewer);
-     double maxView = viewer.getViewDistance();
-     for (int r = -bound; r <= bound; r++) {
-        for (int c = -bound; c <= bound; c++) {
-           castRay(source, r, c, visible, maxView);
-        }
-     }
-     return visible;
+      double dist = viewer.getViewDistance();
+      int bound = (int) Math.ceil(dist);
+      Map<Location, Entity> visible = new HashMap<>();
+      Location source = objects.get(viewer);
+      visible.put(source, viewer);
+      double maxView = viewer.getViewDistance();
+      for (int r = -bound; r <= bound; r++) {
+         for (int c = -bound; c <= bound; c++) {
+            castRay(source, r, c, visible, maxView);
+         }
+      }
+      return visible;
    }
 
    private void castRay(Location source, int r, int c, Map<Location, Entity> visible, double maxView) {
@@ -230,62 +229,66 @@ public class Grid {
          }
       }
    }
-   
-//   private Map<Location, Entity> getVisibleEntities(Entity viewer) {
-//      Map<Location, Entity> visible = new HashMap<>();
-//      int added = 1;
-//      int dist = 0;
-//      Location source = objects.get(viewer);
-//      visible.put(source, viewer);
-//      double maxView = viewer.getViewDistance();
-//      while (added > 0) {
-//         added = 0;
-//         dist += 1;
-//         int row, col;
-//         col = dist;
-//         for (row = -dist; row <= dist; row++) {
-//            added += checkLocationVisibility(row, col, source, visible, maxView);
-//         }
-//         col = -dist;
-//         for (row = -dist; row <= dist; row++) {
-//            added += checkLocationVisibility(row, col, source, visible, maxView);
-//         }
-//         row = dist;
-//         for (col = -dist + 1; col < dist; col++) {
-//            added += checkLocationVisibility(row, col, source, visible, maxView);
-//         }
-//         row = -dist;
-//         for (col = -dist + 1; col < dist; col++) {
-//            added += checkLocationVisibility(row, col, source, visible, maxView);
-//         }
-//      }
-//      return visible;
-//   }
-//   
-//   private int checkLocationVisibility(int row, int col, Location source, Map<Location, Entity> visible, double maxView) {
-//      Location check = source.shifted(row, col);
-//      if (source.distance(check) < maxView) {
-//         for (Location loc : getVisibilitySquares(source, check)) {
-//            if (visible.containsKey(loc) && (visible.get(loc) == null || visible.get(loc).isTransparent())) {
-//               visible.put(check, objects.inverse().get(check));
-//               return 1;
-//            }
-//         }
-//      }
-//      return 0;
-//   }
-//   
-//   private Set<Location> getVisibilitySquares(Location cam, Location square) {
-//      Set<Location> possible = new HashSet<>();
-//      possible.add(square.shifted(0,1));
-//      possible.add(square.shifted(1,1));
-//      possible.add(square.shifted(-1,1));
-//      possible.add(square.shifted(0,-1));
-//      possible.add(square.shifted(1,-1));
-//      possible.add(square.shifted(-1,-1));
-//      possible.add(square.shifted(1,0));
-//      possible.add(square.shifted(-1,0));
-//      possible.removeIf((loc) -> loc.distance(cam) >= square.distance(cam) - 0.8);
-//      return possible;
-//   }
+
+   // private Map<Location, Entity> getVisibleEntities(Entity viewer) {
+   // Map<Location, Entity> visible = new HashMap<>();
+   // int added = 1;
+   // int dist = 0;
+   // Location source = objects.get(viewer);
+   // visible.put(source, viewer);
+   // double maxView = viewer.getViewDistance();
+   // while (added > 0) {
+   // added = 0;
+   // dist += 1;
+   // int row, col;
+   // col = dist;
+   // for (row = -dist; row <= dist; row++) {
+   // added += checkLocationVisibility(row, col, source, visible, maxView);
+   // }
+   // col = -dist;
+   // for (row = -dist; row <= dist; row++) {
+   // added += checkLocationVisibility(row, col, source, visible, maxView);
+   // }
+   // row = dist;
+   // for (col = -dist + 1; col < dist; col++) {
+   // added += checkLocationVisibility(row, col, source, visible, maxView);
+   // }
+   // row = -dist;
+   // for (col = -dist + 1; col < dist; col++) {
+   // added += checkLocationVisibility(row, col, source, visible, maxView);
+   // }
+   // }
+   // return visible;
+   // }
+   //
+   // private int checkLocationVisibility(int row, int col, Location source,
+   // Map<Location, Entity> visible, double maxView) {
+   // Location check = source.shifted(row, col);
+   // if (source.distance(check) < maxView) {
+   // for (Location loc : getVisibilitySquares(source, check)) {
+   // if (visible.containsKey(loc) && (visible.get(loc) == null ||
+   // visible.get(loc).isTransparent())) {
+   // visible.put(check, objects.inverse().get(check));
+   // return 1;
+   // }
+   // }
+   // }
+   // return 0;
+   // }
+   //
+   // private Set<Location> getVisibilitySquares(Location cam, Location square)
+   // {
+   // Set<Location> possible = new HashSet<>();
+   // possible.add(square.shifted(0,1));
+   // possible.add(square.shifted(1,1));
+   // possible.add(square.shifted(-1,1));
+   // possible.add(square.shifted(0,-1));
+   // possible.add(square.shifted(1,-1));
+   // possible.add(square.shifted(-1,-1));
+   // possible.add(square.shifted(1,0));
+   // possible.add(square.shifted(-1,0));
+   // possible.removeIf((loc) -> loc.distance(cam) >= square.distance(cam) -
+   // 0.8);
+   // return possible;
+   // }
 }
