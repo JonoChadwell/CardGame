@@ -51,9 +51,6 @@ public class Game {
    }
    
    private void performGameTick() {
-      for (Player p : players) {
-         p.clearVision();
-      }
       grid.performGameTick();
    }
    

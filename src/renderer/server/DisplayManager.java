@@ -1,4 +1,4 @@
-package renderer.client;
+package renderer.server;
 
 import game.Game;
 

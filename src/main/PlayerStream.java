@@ -61,15 +61,23 @@ public class PlayerStream {
                   player.queueAction(ma);
                }
             } else if (first.equalsIgnoreCase("queue") || first.equalsIgnoreCase("q")) {
-               if (player.getQueue().isEmpty()) {
-                  write("No actions queued");
-               } else {
-                  StringBuilder queueText = new StringBuilder();
-                  queueText.append("Queue:\n");
-                  for (Action a : player.getQueue()) {
-                     queueText.append("   " + a + "\n");
+               if (lineScanner.hasNext()) {
+                  String arg = lineScanner.next();
+                  if (arg.equalsIgnoreCase("clear") || arg.equalsIgnoreCase("c")) {
+                     player.clearQueue();
+                     write("Queue cleared");
                   }
-                  write(queueText.toString());
+               } else {
+                  if (player.getQueue().isEmpty()) {
+                     write("No actions queued");
+                  } else {
+                     StringBuilder queueText = new StringBuilder();
+                     queueText.append("Queue:\n");
+                     for (Action a : player.getQueue()) {
+                        queueText.append("   " + a + "\n");
+                     }
+                     write(queueText.toString());
+                  }
                }
             } else if (first.equalsIgnoreCase("cards") || first.equalsIgnoreCase("c")) {
                output.println("Deck size: " + player.getDeckSize());
@@ -117,7 +125,7 @@ public class PlayerStream {
                   if (ent == null) {
                      output.println("   " + loc + " : empty");
                   } else {
-                     output.println("   " + loc + " : " + ent);
+                     output.println("   " + loc + " : " + ent);  
                   }
                });
                output.flush();
@@ -134,14 +142,18 @@ public class PlayerStream {
                      + "   status (s): show player status\n"
                      + "   queue (q): show current action queue\n"
                      + "   move (m) <north (n), south (s), west (w), east (e)>: move player\n"
-                     + "   place (p) <card, x, y>: play card #<card> from your hand (<x>, <y>) units from your character");
+                     + "   place (p) <card, x, y>: play card #<card> from your hand (<x>, <y>) units from your character"
+                     + "   look (l) display character vision");
+               
                      
             } else {
                write("Command \"" + first + "\" not recognized");
             }
             lineScanner.close();
             continue;
-         } catch (Exception ex) {}
+         } catch (Exception ex) {
+            ex.printStackTrace();
+         }
          write("Input error on: " + line);
       }
       input.close();

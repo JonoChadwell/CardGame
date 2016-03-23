@@ -96,6 +96,10 @@ public class Player implements Entity, Summoner, FactionMember {
    public List<Action> getQueue() {
       return new ArrayList<>(pendingActions);
    }
+   
+   public void clearQueue() {
+      pendingActions = new LinkedList<>();
+   }
 
    @Override
    public Entity getSummon(int index) {
@@ -116,12 +120,8 @@ public class Player implements Entity, Summoner, FactionMember {
       return this;
    }
 
-   public void clearVision() {
-      vision.clear();
-   }
-
-   public void addVision(Map<Vector, Entity> vis) {
-      vision.putAll(vis);
+   public void setVision(Map<Vector, Entity> vis) {
+      vision = vis;
    }
 
    public Map<Vector, Entity> getVision() {

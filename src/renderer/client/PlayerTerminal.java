@@ -1,14 +1,16 @@
-package renderer.server;
+package renderer.client;
 
 import game.entities.Player;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -50,6 +52,7 @@ public class PlayerTerminal {
       myFrame.setSize(600, 400);
       myFrame.setTitle(player.toString());
       myFrame.setVisible(true);
+      System.out.println(in.getSize());
    }
    
    private OutputStream setupOutput() throws IOException {
@@ -63,13 +66,14 @@ public class PlayerTerminal {
       new Thread(() -> {
          Scanner scanner = new Scanner(toTerminal);
          while (scanner.hasNextLine()) {
-            out.append(scanner.nextLine() + "\n");
             try {
+               out.append(scanner.nextLine() + "\n");
                Thread.sleep(5);
-            } catch (InterruptedException ex) {
-               throw new RuntimeException(ex);
+               scrollToBottom.run();
+               myFrame.repaint();
+            } catch (Exception e) {
+               e.printStackTrace();
             }
-            scrollToBottom.run();
          }
       }).start();
       
@@ -78,6 +82,7 @@ public class PlayerTerminal {
    
    private InputStream setupInput() throws IOException {
       in.setBackground(Color.GRAY);
+      in.setPreferredSize(new Dimension(10000, 16));
       
       PipedOutputStream fromTerminal = new PipedOutputStream();
       PipedInputStream toPlayer = new PipedInputStream(fromTerminal);

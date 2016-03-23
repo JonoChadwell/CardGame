@@ -192,6 +192,7 @@ public class Grid {
    }
    
    private void updatePlayerData() {
+      Map<Player, Map<Vector, Entity>> visMap = new HashMap<>();
       objects.forEach((ent, loc) -> {
          if (ent instanceof FactionMember) {
             Player faction = ((FactionMember) ent).getFactionOwner();
@@ -201,10 +202,15 @@ public class Grid {
             }
             if (objects.containsKey(faction)) {
                Location playerLoc = objects.get(faction);
-               faction.addVision(translate(getVisibleEntities(ent), playerLoc));
+               Map<Vector, Entity> entVis = translate(getVisibleEntities(ent), playerLoc);
+               Map<Vector, Entity> playersMap = visMap.putIfAbsent(faction, entVis);
+               if (playersMap != null) {
+                  playersMap.putAll(entVis);
+               }
             }
          }
       });
+      visMap.forEach((player, map) -> player.setVision(map));
    }
 
    private Map<Vector, Entity> translate(Map<Location, Entity> map, Location center) {
@@ -283,66 +289,4 @@ public class Grid {
          }
       }
    }
-
-   // private Map<Location, Entity> getVisibleEntities(Entity viewer) {
-   // Map<Location, Entity> visible = new HashMap<>();
-   // int added = 1;
-   // int dist = 0;
-   // Location source = objects.get(viewer);
-   // visible.put(source, viewer);
-   // double maxView = viewer.getViewDistance();
-   // while (added > 0) {
-   // added = 0;
-   // dist += 1;
-   // int row, col;
-   // col = dist;
-   // for (row = -dist; row <= dist; row++) {
-   // added += checkLocationVisibility(row, col, source, visible, maxView);
-   // }
-   // col = -dist;
-   // for (row = -dist; row <= dist; row++) {
-   // added += checkLocationVisibility(row, col, source, visible, maxView);
-   // }
-   // row = dist;
-   // for (col = -dist + 1; col < dist; col++) {
-   // added += checkLocationVisibility(row, col, source, visible, maxView);
-   // }
-   // row = -dist;
-   // for (col = -dist + 1; col < dist; col++) {
-   // added += checkLocationVisibility(row, col, source, visible, maxView);
-   // }
-   // }
-   // return visible;
-   // }
-   //
-   // private int checkLocationVisibility(int row, int col, Location source,
-   // Map<Location, Entity> visible, double maxView) {
-   // Location check = source.shifted(row, col);
-   // if (source.distance(check) < maxView) {
-   // for (Location loc : getVisibilitySquares(source, check)) {
-   // if (visible.containsKey(loc) && (visible.get(loc) == null ||
-   // visible.get(loc).isTransparent())) {
-   // visible.put(check, objects.inverse().get(check));
-   // return 1;
-   // }
-   // }
-   // }
-   // return 0;
-   // }
-   //
-   // private Set<Location> getVisibilitySquares(Location cam, Location square)
-   // {
-   // Set<Location> possible = new HashSet<>();
-   // possible.add(square.shifted(0,1));
-   // possible.add(square.shifted(1,1));
-   // possible.add(square.shifted(-1,1));
-   // possible.add(square.shifted(0,-1));
-   // possible.add(square.shifted(1,-1));
-   // possible.add(square.shifted(-1,-1));
-   // possible.add(square.shifted(1,0));
-   // possible.add(square.shifted(-1,0));
-   // possible.removeIf((loc) -> loc.distance(cam) >= square.distance(cam) -
-   // 0.8);
-   // return possible;
-   // }
 }

@@ -2,8 +2,8 @@ package main;
 
 import game.Game;
 import game.entities.Player;
-import renderer.client.DisplayManager;
-import renderer.server.PlayerTerminal;
+import renderer.client.PlayerTerminal;
+import renderer.server.DisplayManager;
 
 public class Main {
    public static void main(String args[]) throws Exception {
