@@ -8,7 +8,7 @@ import game.entities.Player;
 public class Scout extends BasicSoldier {
 
    public Scout(Player faction) {
-      super(4, 2, 1, 2, 1, faction);
+      super(4, 1.5, 1, 2, 1, faction);
    }
    
    @Override

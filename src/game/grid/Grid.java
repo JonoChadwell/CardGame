@@ -249,7 +249,7 @@ public class Grid {
    }
 
    public List<Entity> getEntitiesInArea(Entity center, double radius) {
-      return objects.entrySet().stream().filter((entry) -> entry.getKey() != center && objects.get(center).distance(entry.getValue()) < radius)
+      return objects.entrySet().stream().filter((entry) -> entry.getKey() != center && objects.get(center).distance(entry.getValue()) <= radius)
             .map((entry) -> entry.getKey()).collect(Collectors.toList());
    }
 
