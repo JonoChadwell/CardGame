@@ -3,6 +3,7 @@ package game.grid;
 import game.GameException;
 import game.actions.Action;
 import game.actions.AttackAction;
+import game.actions.DrawAction;
 import game.actions.MoveAction;
 import game.actions.PlaceAction;
 import game.cards.Card;
@@ -129,8 +130,15 @@ public class Grid {
             } else if (a instanceof AttackAction) {
                if (ent instanceof Attacker) {
                   attacks.add(new AttackData((Attacker) ent));
+                  ent.actionSuceeded(a);
                } else {
                   ent.actionFailed(a, "This unit cannot attack");
+               }
+            } else if (a instanceof DrawAction) {
+               if (ent instanceof Player) {
+                  ((Player) ent).drawCard();
+               } else {
+                  ent.actionFailed(a, "This unit cannot draw");
                }
             } else if (a instanceof PlaceAction) {
                PlaceAction pa = (PlaceAction) a;

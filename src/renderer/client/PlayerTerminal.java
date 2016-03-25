@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.Scanner;
 
 import javax.swing.JFrame;
@@ -31,12 +32,10 @@ public class PlayerTerminal {
    private JTextArea in;
    private JTextArea out;
    private Runnable scrollToBottom;
-   Player player;
    
    public PlayerTerminal(Player player) throws IOException {
       in = new JTextArea();
       out = new JTextArea();
-      this.player = player;
       JScrollPane sp = new JScrollPane(out);
       sp.setAutoscrolls(true);
       scrollToBottom = () -> sp.getVerticalScrollBar().setValue(sp.getVerticalScrollBar().getMaximum());
@@ -51,6 +50,28 @@ public class PlayerTerminal {
       myFrame.add(in, BorderLayout.SOUTH);
       myFrame.setSize(600, 400);
       myFrame.setTitle(player.toString());
+      myFrame.setVisible(true);
+      System.out.println(in.getSize());
+   }
+   
+   public PlayerTerminal(Socket sock) throws IOException {
+      in = new JTextArea();
+      out = new JTextArea();
+      JScrollPane sp = new JScrollPane(out);
+      sp.setAutoscrolls(true);
+      scrollToBottom = () -> sp.getVerticalScrollBar().setValue(sp.getVerticalScrollBar().getMaximum());
+      sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+      sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+      
+      setupOutputDisplay(sock.getInputStream());
+      setupInputBar(sock.getOutputStream());
+      
+      myFrame = new JFrame();
+      myFrame.setLayout(new BorderLayout());
+      myFrame.add(sp, BorderLayout.CENTER);
+      myFrame.add(in, BorderLayout.SOUTH);
+      myFrame.setSize(600, 400);
+      myFrame.setTitle("Game!");
       myFrame.setVisible(true);
       System.out.println(in.getSize());
    }
@@ -80,6 +101,26 @@ public class PlayerTerminal {
       return fromPlayer;
    }
    
+   private void setupOutputDisplay(InputStream stream) throws IOException {
+      out.setBackground(Color.DARK_GRAY);
+      out.setForeground(Color.white);
+      out.setEditable(false);
+      
+      new Thread(() -> {
+         Scanner scanner = new Scanner(stream);
+         while (scanner.hasNextLine()) {
+            try {
+               out.append(scanner.nextLine() + "\n");
+               Thread.sleep(5);
+               scrollToBottom.run();
+               myFrame.repaint();
+            } catch (Exception e) {
+               e.printStackTrace();
+            }
+         }
+      }).start();
+   }
+   
    private InputStream setupInput() throws IOException {
       in.setBackground(Color.GRAY);
       in.setPreferredSize(new Dimension(10000, 16));
@@ -100,5 +141,23 @@ public class PlayerTerminal {
       });
       
       return toPlayer;
+   }
+   
+   private void setupInputBar(OutputStream stream) throws IOException {
+      in.setBackground(Color.GRAY);
+      in.setPreferredSize(new Dimension(10000, 16));
+      
+      PrintWriter writer = new PrintWriter(stream);
+      
+      in.addKeyListener(new KeyAdapter() {
+         @Override
+         public void keyTyped(KeyEvent arg0) {
+            if (arg0.getKeyChar() == '\n') {
+               writer.print(in.getText());
+               writer.flush();
+               in.setText("");
+            }
+         }
+      });
    }
 }

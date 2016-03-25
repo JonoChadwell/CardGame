@@ -24,6 +24,7 @@ public class Player implements Entity, Summoner, FactionMember {
    private String name;
    private Map<Vector, Entity> vision = new HashMap<>();
    private LinkedList<Card> burnt = new LinkedList<>();
+   private LinkedList<Card> drawn = new LinkedList<>();
    private LinkedList<Action> pendingActions = new LinkedList<>();
    private LinkedList<FactionMember> slainAllies = new LinkedList<>();
    private Set<FactionMember> allies = new HashSet<>();
@@ -141,7 +142,7 @@ public class Player implements Entity, Summoner, FactionMember {
    public void takeDamage(int amount) {
       while (amount-- > 0) {
          if (deck.size() > 0) {
-            burnt.add(deck.remove(deck.size() - 1));
+            burnt.add(takeTopCard());
          } else {
             living = false;
             break;
@@ -149,14 +150,18 @@ public class Player implements Entity, Summoner, FactionMember {
       }
    }
 
-   public List<Card> getBurntCards() {
-      return burnt;
-   }
-
    public Set<Card> clearBurntCards() {
       Set<Card> rtn = new HashSet<>();
       while(!burnt.isEmpty()) {
          rtn.add(burnt.removeFirst());
+      }
+      return rtn;
+   }
+   
+   public Set<Card> clearDrawnCards() {
+      Set<Card> rtn = new HashSet<>();
+      while(!drawn.isEmpty()) {
+         rtn.add(drawn.removeFirst());
       }
       return rtn;
    }
@@ -176,5 +181,15 @@ public class Player implements Entity, Summoner, FactionMember {
    public Set<FactionMember> getAllies() {
       allies.removeIf(ally -> ally.isDead());
       return allies;
+   }
+   
+   public void drawCard() {
+      Card toDraw = takeTopCard();
+      hand.add(toDraw);
+      drawn.add(toDraw);
+   }
+   
+   private Card takeTopCard() {
+      return deck.remove(deck.size() - 1);
    }
 }

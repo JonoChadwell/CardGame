@@ -70,17 +70,19 @@ public class GridDisplay {
       }
       game.getPlayers().forEach((player) -> {
          Location center = grid.getLocation(player);
-         player.getVision().forEach((vec, ent) -> {
-            Color color;
-            if (player.getName().equals("Americo")) {
-               color = new Color(0, 0, 255, 20);
-            } else {
-               color = new Color(255, 0, 0, 20);
-            }
-            Location toDraw = vec.apply(center);
-            g.setColor(color);
-            g.fillRect(toDraw.getCol() * GRID_SIZE + 1, toDraw.getRow() * GRID_SIZE + 1, GRID_SIZE - 1, GRID_SIZE - 1);
-         });
+         if (!player.isDead()) {
+            player.getVision().forEach((vec, ent) -> {
+               Color color;
+               if (player.getName().equals("Americo")) {
+                  color = new Color(0, 0, 255, 20);
+               } else {
+                  color = new Color(255, 0, 0, 20);
+               }
+               Location toDraw = vec.apply(center);
+               g.setColor(color);
+               g.fillRect(toDraw.getCol() * GRID_SIZE + 1, toDraw.getRow() * GRID_SIZE + 1, GRID_SIZE - 1, GRID_SIZE - 1);
+            });
+         }
       });
       g.setColor(Color.GRAY);
       g.fillRect(GRID_SIZE * grid.getWidth() + 1, 0, myPanel.getWidth(), myPanel.getHeight());

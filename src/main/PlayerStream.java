@@ -1,6 +1,7 @@
 package main;
 
 import game.actions.Action;
+import game.actions.DrawAction;
 import game.actions.MoveAction;
 import game.actions.PlaceAction;
 import game.cards.Card;
@@ -108,6 +109,9 @@ public class PlayerStream {
                for (Card card : player.clearBurntCards()) {
                   output.println("Card Destroyed: " + card);
                }
+               for (Card card : player.clearDrawnCards()) {
+                  output.println("Card Drawn: " + card);
+               }
                for (FactionMember ally : player.clearSlainAllies()) {
                   output.println("Ally Destroyed: " + ally);
                }
@@ -129,6 +133,9 @@ public class PlayerStream {
                   }
                });
                output.flush();
+            } else if (first.equalsIgnoreCase("draw") || first.equalsIgnoreCase("d")) {
+               write("Drawing Card");
+               player.queueAction(new DrawAction());
             } else if (first.equalsIgnoreCase("allies") || first.equalsIgnoreCase("a")) {
                output.println("Allies:");
                player.getAllies().forEach(ally -> {
@@ -143,7 +150,8 @@ public class PlayerStream {
                      + "   queue (q): show current action queue\n"
                      + "   move (m) <north (n), south (s), west (w), east (e)>: move player\n"
                      + "   place (p) <card, x, y>: play card #<card> from your hand (<x>, <y>) units from your character"
-                     + "   look (l) display character vision");
+                     + "   look (l) display character vision"
+                     + "   draw (d) draw a card from your deck");
                
                      
             } else {
