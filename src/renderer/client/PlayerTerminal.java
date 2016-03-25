@@ -2,15 +2,12 @@ package renderer.client;
 
 import game.entities.Player;
 
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -20,20 +17,25 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
+
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.text.DefaultCaret;
 
-import main.PlayerStream;
+
+import common.Vector;
+
+import main.DataStream;
 
 public class PlayerTerminal {
    private JFrame myFrame;
    private JTextArea in;
    private JTextArea out;
    private Runnable scrollToBottom;
+   private PlayerMapDisplay map;
    
    public PlayerTerminal(Player player) throws IOException {
+      map = new PlayerMapDisplay();
       in = new JTextArea();
       out = new JTextArea();
       JScrollPane sp = new JScrollPane(out);
@@ -42,19 +44,21 @@ public class PlayerTerminal {
       sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
       sp.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
       
-      new PlayerStream(player, setupInput(), setupOutput());
+      new DataStream(player, setupInput(), setupOutput());
       
       myFrame = new JFrame();
       myFrame.setLayout(new BorderLayout());
       myFrame.add(sp, BorderLayout.CENTER);
       myFrame.add(in, BorderLayout.SOUTH);
-      myFrame.setSize(600, 400);
+      myFrame.add(map.getPanel(), BorderLayout.NORTH);
+      myFrame.setSize(776, 800);
       myFrame.setTitle(player.toString());
       myFrame.setVisible(true);
-      System.out.println(in.getSize());
+      myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
    }
    
    public PlayerTerminal(Socket sock) throws IOException {
+      map = new PlayerMapDisplay();
       in = new JTextArea();
       out = new JTextArea();
       JScrollPane sp = new JScrollPane(out);
@@ -70,33 +74,17 @@ public class PlayerTerminal {
       myFrame.setLayout(new BorderLayout());
       myFrame.add(sp, BorderLayout.CENTER);
       myFrame.add(in, BorderLayout.SOUTH);
+      myFrame.add(map.getPanel(), BorderLayout.NORTH);
       myFrame.setSize(600, 400);
       myFrame.setTitle("Game!");
       myFrame.setVisible(true);
-      System.out.println(in.getSize());
    }
    
    private OutputStream setupOutput() throws IOException {
-      out.setBackground(Color.DARK_GRAY);
-      out.setForeground(Color.white);
-      out.setEditable(false);
-      
       PipedOutputStream fromPlayer = new PipedOutputStream();
       PipedInputStream toTerminal = new PipedInputStream(fromPlayer);
       
-      new Thread(() -> {
-         Scanner scanner = new Scanner(toTerminal);
-         while (scanner.hasNextLine()) {
-            try {
-               out.append(scanner.nextLine() + "\n");
-               Thread.sleep(5);
-               scrollToBottom.run();
-               myFrame.repaint();
-            } catch (Exception e) {
-               e.printStackTrace();
-            }
-         }
-      }).start();
+      setupOutputDisplay(toTerminal);
       
       return fromPlayer;
    }
@@ -110,10 +98,28 @@ public class PlayerTerminal {
          Scanner scanner = new Scanner(stream);
          while (scanner.hasNextLine()) {
             try {
-               out.append(scanner.nextLine() + "\n");
-               Thread.sleep(5);
-               scrollToBottom.run();
-               myFrame.repaint();
+               String line = scanner.nextLine();
+               if (line.startsWith("MAP:")) {
+                  if (line.equals("MAP:BEGIN")) {
+                     map.begin();
+                  } else if (line.equals("MAP:END")) {
+                     map.end();
+                     myFrame.repaint();
+                  } else {
+                     String vec = line.substring(4, line.indexOf(":", 5));
+                     String rest = line.substring(line.indexOf(":", 5) + 1);
+                     if (rest.equals("EMPTY")) {
+                        map.put(Vector.fromString(vec), null);
+                     } else {
+                        map.put(Vector.fromString(vec), new Entity(rest));
+                     }
+                  }
+               } else {
+                  out.append(line + "\n");
+                  Thread.sleep(5);
+                  scrollToBottom.run();
+                  myFrame.repaint();
+               }
             } catch (Exception e) {
                e.printStackTrace();
             }
@@ -122,23 +128,10 @@ public class PlayerTerminal {
    }
    
    private InputStream setupInput() throws IOException {
-      in.setBackground(Color.GRAY);
-      in.setPreferredSize(new Dimension(10000, 16));
-      
       PipedOutputStream fromTerminal = new PipedOutputStream();
       PipedInputStream toPlayer = new PipedInputStream(fromTerminal);
-      PrintWriter writer = new PrintWriter(fromTerminal);
       
-      in.addKeyListener(new KeyAdapter() {
-         @Override
-         public void keyTyped(KeyEvent arg0) {
-            if (arg0.getKeyChar() == '\n') {
-               writer.print(in.getText());
-               writer.flush();
-               in.setText("");
-            }
-         }
-      });
+      setupInputBar(fromTerminal);
       
       return toPlayer;
    }

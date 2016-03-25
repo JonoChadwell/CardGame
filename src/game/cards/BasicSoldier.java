@@ -61,7 +61,8 @@ public class BasicSoldier implements Card, Entity, Attacker, FactionMember {
             + ", Attack Range: " + attackRange
             + ", Max Health: " + health
             + ", Current Health: " + (health - damage)
-            + ", Cost: " + cost;
+            + ", Cost: " + cost
+            + ", Faction: " + faction;
    }
 
    @Override

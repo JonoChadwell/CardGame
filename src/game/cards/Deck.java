@@ -4,9 +4,10 @@ import game.entities.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Deck extends ArrayList<Card> {
-   private static final int DECK_START_SIZE = 30;
+   private static final int DECK_START_SIZE = 10;
    
    public Card draw() {
       if (isEmpty()) {
@@ -18,8 +19,13 @@ public class Deck extends ArrayList<Card> {
 
    public static Deck buildRandomDeck(Player owner) {
       Deck rtn = new Deck();
+      Random rand = new Random();
       for (int i = 0; i < DECK_START_SIZE; i++) {
-         rtn.add(new Trainee(owner));
+         if (rand.nextDouble() < 0.6) {
+            rtn.add(new Trainee(owner));
+         } else {
+            rtn.add(new Scout(owner));
+         }
       }
       return rtn;
    }

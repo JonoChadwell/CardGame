@@ -6,7 +6,6 @@ import game.entities.Entity;
 import game.entities.Player;
 import game.entities.Wall;
 import game.grid.Grid;
-import game.grid.Location;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -19,6 +18,8 @@ import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import common.Location;
 
 public class GridDisplay {
    private final Game game;

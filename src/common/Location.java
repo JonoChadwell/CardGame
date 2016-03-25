@@ -1,4 +1,5 @@
-package game.grid;
+package common;
+
 
 public class Location {
    private final int row;

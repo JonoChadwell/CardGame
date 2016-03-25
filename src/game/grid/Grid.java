@@ -25,6 +25,9 @@ import java.util.stream.Collectors;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
+import common.Location;
+import common.Vector;
+
 public class Grid {
    private final int width;
    private final int height;

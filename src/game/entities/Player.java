@@ -6,7 +6,6 @@ import game.actions.RestAction;
 import game.cards.Card;
 import game.cards.Deck;
 import game.cards.Hand;
-import game.grid.Vector;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -16,6 +15,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import common.Vector;
 
 public class Player implements Entity, Summoner, FactionMember {
    private Hand hand;

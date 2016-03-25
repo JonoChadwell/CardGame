@@ -1,4 +1,5 @@
-package game.grid;
+package common;
+
 
 public class Vector {
    private final int x;
@@ -40,6 +41,16 @@ public class Vector {
    
    @Override
    public String toString() {
-      return "{Vector : {x : " + x + ", y : " + y + "}}";
+      return "vector " + x + " " + y;
+   }
+   
+   public static Vector fromString(String vec) {
+      if (vec.matches("vector -*\\d* -*\\d*")) {
+         String parts[] = vec.split(" ");
+         return new Vector(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+      } else {
+         throw new NumberFormatException("Expected vector, got \"" + vec + "\"");
+         
+      }
    }
 }

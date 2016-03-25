@@ -38,12 +38,11 @@ public class ServerNetworkLayer {
                Player playerB = new Player("Commie");
                
                Game game = new Game(playerA, playerB);
-               new DisplayManager(game);
                game.startGame();
                ongoing.add(game);
 
-               new PlayerStream(playerA, a.getInputStream(), a.getOutputStream());
-               new PlayerStream(playerB, b.getInputStream(), b.getOutputStream());
+               new DataStream(playerA, a.getInputStream(), a.getOutputStream());
+               new DataStream(playerB, b.getInputStream(), b.getOutputStream());
             }
 
          } catch (Exception e) {
