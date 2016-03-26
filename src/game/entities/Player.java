@@ -24,6 +24,7 @@ public class Player implements Entity, Summoner, FactionMember {
    private PrintWriter output;
    private String name;
    private Map<Vector, Entity> vision = new HashMap<>();
+   private Map<Vector, Entity> pastVision = new HashMap<>();
    private LinkedList<Card> burnt = new LinkedList<>();
    private LinkedList<Card> drawn = new LinkedList<>();
    private LinkedList<Action> pendingActions = new LinkedList<>();
@@ -31,13 +32,16 @@ public class Player implements Entity, Summoner, FactionMember {
    private Set<FactionMember> allies = new HashSet<>();
    private boolean living = true;
 
-   public Player(String name) {
-      this.name = name;
+   public Player() {
       deck = Deck.buildRandomDeck(this);
       hand = new Hand();
       for (int i = 0; i < Hand.HAND_STARTING_SIZE; i++) {
          hand.add(deck.draw());
       }
+   }
+
+   public void setName(String name) {
+      this.name = name;
    }
 
    public void queueAction(Action a) {
@@ -122,12 +126,17 @@ public class Player implements Entity, Summoner, FactionMember {
       return this;
    }
 
-   public void setVision(Map<Vector, Entity> vis) {
+   public void setVision(Map<Vector, Entity> vis, Map<Vector, Entity> pastVis) {
       vision = vis;
+      pastVision = pastVis;
    }
 
    public Map<Vector, Entity> getVision() {
       return vision;
+   }
+   
+   public Map<Vector, Entity> getPastVision() {
+      return pastVision;
    }
 
    public String getName() {
@@ -192,5 +201,10 @@ public class Player implements Entity, Summoner, FactionMember {
    
    private Card takeTopCard() {
       return deck.remove(deck.size() - 1);
+   }
+   
+   @Override
+   public boolean saveVision() {
+      return false;
    }
 }

@@ -5,6 +5,7 @@ import game.actions.DrawAction;
 import game.actions.MoveAction;
 import game.actions.PlaceAction;
 import game.cards.Card;
+import game.entities.Entity;
 import game.entities.FactionMember;
 import game.entities.Player;
 
@@ -14,9 +15,10 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.function.Consumer;
+
+import common.Vector;
 
 public class DataStream {
    private Player player;
@@ -149,7 +151,6 @@ public class DataStream {
 
       // Look
       Consumer<String[]> look = arg -> {
-         output.println("Updating visible squares");
          output.println("MAP:BEGIN");
          player.getVision().forEach((loc, ent) -> {
             if (ent == null) {
@@ -158,6 +159,14 @@ public class DataStream {
                output.println("MAP:" + loc + ":" + ent);
             }
          });
+         player.getPastVision().forEach((loc, ent) -> {
+            if (ent == null) {
+               output.println("MAP:PAST:" + loc + ":EMPTY");
+            } else {
+               output.println("MAP:PAST:" + loc + ":" + ent);
+            }
+         });
+         
          output.println("MAP:END");
          output.flush();
       };
@@ -175,6 +184,15 @@ public class DataStream {
             output.println("   " + ally);
          });
          output.flush();
+      };
+      
+      // SetName
+      Consumer<String[]> setname = arg -> {
+         if (arg.length == 2) {
+            player.setName(arg[1]);
+         } else {
+            write("setname <name>");
+         }
       };
 
       Map<String, Consumer<String[]>> handlers = new HashMap<>();
@@ -194,6 +212,7 @@ public class DataStream {
       handlers.put("d", draw);
       handlers.put("allies", allies);
       handlers.put("a", allies);
+      handlers.put("setname", setname);
 
       return handlers;
    }

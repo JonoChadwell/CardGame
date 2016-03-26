@@ -16,7 +16,7 @@ public class Game {
    private Timer gameClock;
    
    private static final int GRID_SIZE = 12;
-   private static final double WALL_DENSITY = 0.2;
+   private static final double WALL_DENSITY = 0.1;
 
    public Game(Player a, Player b) {
       grid = new Grid(GRID_SIZE);

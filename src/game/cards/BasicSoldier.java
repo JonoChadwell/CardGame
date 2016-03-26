@@ -7,7 +7,7 @@ import game.entities.Entity;
 import game.entities.FactionMember;
 import game.entities.Player;
 
-public class BasicSoldier implements Card, Entity, Attacker, FactionMember {
+public class BasicSoldier implements Unit, Entity, Attacker, FactionMember {
    private final double castRange;
    private final double attackRange;
    private final int attackDamage;
@@ -78,5 +78,10 @@ public class BasicSoldier implements Card, Entity, Attacker, FactionMember {
    @Override
    public boolean isDead() {
       return health <= damage;
+   }
+   
+   @Override
+   public boolean saveVision() {
+      return false;
    }
 }

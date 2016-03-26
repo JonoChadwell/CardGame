@@ -7,6 +7,7 @@ import game.actions.DrawAction;
 import game.actions.MoveAction;
 import game.actions.PlaceAction;
 import game.cards.Card;
+import game.cards.Unit;
 import game.entities.Attacker;
 import game.entities.Entity;
 import game.entities.FactionMember;
@@ -34,6 +35,7 @@ public class Grid {
    private BiMap<Entity, Location> objects;
    private Map<Entity, Integer> cooldowns;
    private Runnable tickEndCallback;
+   private Map<Player, Map<Location, Entity>> playerMaps = new HashMap<>();
 
    public Grid(int size) {
       this(size, size);
@@ -148,7 +150,7 @@ public class Grid {
                try {
                   Entity toPlace = ((Summoner) ent).getSummon(pa.getIndex());
                   Location target = new Location(loc.getRow() - pa.getY(), loc.getCol() + pa.getX());
-                  if (toPlace instanceof Card && target.distance(loc) > ((Card) toPlace).getCastRange()) {
+                  if (toPlace instanceof Unit && target.distance(loc) > ((Unit) toPlace).getCastRange()) {
                      throw new GameException("Target too far away");
                   }
                   checkValid(target);
@@ -211,17 +213,32 @@ public class Grid {
             if (!members.contains(ent)) {
                members.add((FactionMember) ent);
             }
+            if (!playerMaps.containsKey(faction)) {
+               playerMaps.put(faction, new HashMap<>());
+            }
+            
+            
+            
             if (objects.containsKey(faction)) {
                Location playerLoc = objects.get(faction);
-               Map<Vector, Entity> entVis = translate(getVisibleEntities(ent), playerLoc);
-               Map<Vector, Entity> playersMap = visMap.putIfAbsent(faction, entVis);
+               Map<Location, Entity> entityVisionRaw = getVisibleEntities(ent);
+               Map<Location, Entity> playerPersistantVision = playerMaps.get(faction);
+               entityVisionRaw.forEach((loc2, ent2) -> {
+                  if (ent2 == null || ent2.saveVision()) {
+                     playerPersistantVision.put(loc2, ent2);
+                  } else {
+                     playerPersistantVision.put(loc2, null);
+                  }
+               });
+               Map<Vector, Entity> entityVisionRelative = translate(entityVisionRaw, playerLoc);
+               Map<Vector, Entity> playersMap = visMap.putIfAbsent(faction, entityVisionRelative);
                if (playersMap != null) {
-                  playersMap.putAll(entVis);
+                  playersMap.putAll(entityVisionRelative);
                }
             }
          }
       });
-      visMap.forEach((player, map) -> player.setVision(map));
+      visMap.forEach((player, map) -> player.setVision(map, translate(playerMaps.get(player), objects.get(player))));
    }
 
    private Map<Vector, Entity> translate(Map<Location, Entity> map, Location center) {

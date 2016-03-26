@@ -12,12 +12,16 @@ public interface Entity {
       return true;
    }
    
+   public default boolean saveVision() {
+      return true;
+   }
+   
    public default void actionSuceeded(Action a) {}
    public default void actionFailed(Action a) {}
    public default void actionFailed(Action a, String reason) {
       actionFailed(a);
    }
-   public default double getViewDistance() {return 5;}
+   public default double getViewDistance() {return 4;}
    public default void takeDamage(int amount) {}
    public default boolean isDead() {return false;}
 }

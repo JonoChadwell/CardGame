@@ -13,7 +13,7 @@ public class ServerNetworkLayer {
    private ServerSocket server;
    private LinkedList<Socket> pending = new LinkedList<>();
    private LinkedList<Game> ongoing = new LinkedList<>();
-   
+
    public static void main(String args[]) throws Exception {
       new ServerNetworkLayer();
    }
@@ -34,8 +34,8 @@ public class ServerNetworkLayer {
                Socket a = pending.removeFirst();
                Socket b = pending.removeFirst();
 
-               Player playerA = new Player("Americo");
-               Player playerB = new Player("Commie");
+               Player playerA = new Player();
+               Player playerB = new Player();
                
                Game game = new Game(playerA, playerB);
                game.startGame();

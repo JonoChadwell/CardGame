@@ -8,4 +8,8 @@ public class Trooper extends BasicSoldier {
       super(4, 2.3, 3, 4, 5, faction);
    }
 
+   @Override
+   public String toString() {
+      return "Trooper: " + super.toString();
+   }
 }

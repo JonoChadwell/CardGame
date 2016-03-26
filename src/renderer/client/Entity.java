@@ -10,10 +10,6 @@ public class Entity {
       this.text = text;
    }
    
-   public boolean transfer() {
-      return text.contains("wall");
-   }
-   
    public String getText() {
       return text;
    }

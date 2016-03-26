@@ -34,6 +34,7 @@ public class Deck extends ArrayList<Card> {
       rtn.add(new Trainee(owner));
       rtn.add(new Trainee(owner));
       rtn.add(new Trainee(owner));
+      rtn.shuffle();
       return rtn;
    }
 }

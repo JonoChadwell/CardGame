@@ -25,7 +25,9 @@ public class PlayerMapDisplay {
    private static final int GRID_SIZE = 40;
    
    private Map<Vector, Entity> visible = new HashMap<>();
+   private Map<Vector, Entity> pastVisible = new HashMap<>();
    private Map<Vector, Entity> next;
+   private Map<Vector, Entity> nextPast;
 
    @SuppressWarnings("serial")
    public PlayerMapDisplay() {
@@ -58,20 +60,26 @@ public class PlayerMapDisplay {
    
    public void begin() {
       next = new HashMap<>();
+      nextPast = new HashMap<>();
    }
    
    public void end() {
       visible = next;
+      pastVisible = nextPast;
    }
    
    public void put(Vector loc, Entity ent) {
       next.put(loc, ent);
    }
    
+   public void putPast(Vector loc, Entity ent) {
+      nextPast.put(loc, ent);
+   }
+   
    private void drawPanel(Graphics g) {
-      g.setColor(Color.GRAY);
-      g.fillRect(0, 0, myPanel.getWidth(), myPanel.getHeight());
       g.setColor(Color.BLACK);
+      g.fillRect(0, 0, myPanel.getWidth(), myPanel.getHeight());
+      g.setColor(new Color(64,64,64));
       for (int i = 0; i <= myPanel.getWidth() / GRID_SIZE; i++) {
          g.drawLine(i * GRID_SIZE, 0, i * GRID_SIZE, myPanel.getHeight());
       }
@@ -88,6 +96,20 @@ public class PlayerMapDisplay {
             g.fillRect(xPos + 1, yPos + 1, GRID_SIZE - 1, GRID_SIZE - 1);
          } else {
             ent.draw(g, xPos, yPos, GRID_SIZE);
+         }
+      });
+      pastVisible.forEach((loc, ent) -> {
+         if (!visible.containsKey(loc)) {
+            int xPos = (x + loc.getX()) * GRID_SIZE;
+            int yPos = (y - loc.getY()) * GRID_SIZE;
+            if (ent == null) {
+               g.setColor(Color.WHITE);
+               g.fillRect(xPos + 1, yPos + 1, GRID_SIZE - 1, GRID_SIZE - 1);
+            } else {
+               ent.draw(g, xPos, yPos, GRID_SIZE);
+            }
+            g.setColor(new Color(0,0,0,128));
+            g.fillRect(xPos + 1, yPos + 1, GRID_SIZE - 1, GRID_SIZE - 1);
          }
       });
    }
