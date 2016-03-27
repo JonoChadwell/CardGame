@@ -148,9 +148,30 @@ public class DataStream {
             write("format: place <card> <x> <y>");
          }
       };
-
+      
       // Look
       Consumer<String[]> look = arg -> {
+         output.println("Visible Squares:");
+         player.getVision().forEach((loc, ent) -> {
+            if (ent == null) {
+               output.println("   " + loc + " is empty");
+            } else {
+               output.println("   " + loc + " : " + ent);
+            }
+         });
+         output.println("Known Squares:");
+         player.getPastVision().forEach((loc, ent) -> {
+            if (ent == null) {
+               output.println("   " + loc + " is empty");
+            } else {
+               output.println("   " + loc + " : " + ent);
+            }
+         });
+         output.flush();
+      };
+
+      // GUI Update
+      Consumer<String[]> updategui = arg -> {
          output.println("MAP:BEGIN");
          player.getVision().forEach((loc, ent) -> {
             if (ent == null) {
@@ -166,8 +187,10 @@ public class DataStream {
                output.println("MAP:PAST:" + loc + ":" + ent);
             }
          });
-         
          output.println("MAP:END");
+         output.println("HAND:BEGIN");
+         player.getHand().forEach(card -> output.println("HAND:" + card));
+         output.println("HAND:END");
          output.flush();
       };
 
@@ -213,6 +236,7 @@ public class DataStream {
       handlers.put("allies", allies);
       handlers.put("a", allies);
       handlers.put("setname", setname);
+      handlers.put("updategui", updategui);
 
       return handlers;
    }

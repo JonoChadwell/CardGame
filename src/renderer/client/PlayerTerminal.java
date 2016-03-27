@@ -7,6 +7,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -14,11 +16,14 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
@@ -27,8 +32,10 @@ import main.DataStream;
 
 public class PlayerTerminal {
    private JFrame myFrame;
+   private JPanel myCenter;
    private JTextArea in;
    private JTextArea out;
+   private JTextArea playerStatus;
    private Runnable scrollToBottom;
    private PlayerMapDisplay map;
    private PrintWriter writer;
@@ -58,10 +65,19 @@ public class PlayerTerminal {
       
       myFrame = new JFrame();
       myFrame.setLayout(new BorderLayout());
-      myFrame.add(sp, BorderLayout.CENTER);
-      myFrame.add(in, BorderLayout.SOUTH);
-      myFrame.add(map.getPanel(), BorderLayout.NORTH);
-      myFrame.setSize(776, 800);
+      myCenter = new JPanel();
+      myCenter.setLayout(new BorderLayout());
+      myCenter.add(sp, BorderLayout.CENTER);
+      myCenter.add(in, BorderLayout.SOUTH);
+      myCenter.add(map.getPanel(), BorderLayout.NORTH);
+      myFrame.add(myCenter, BorderLayout.CENTER);
+      playerStatus = new JTextArea();
+      playerStatus.setPreferredSize(new Dimension(300, 0));
+      playerStatus.setEditable(false);
+      playerStatus.setLineWrap(true);
+      playerStatus.setWrapStyleWord(true);
+      myFrame.add(playerStatus, BorderLayout.EAST);
+      myFrame.setSize(1076, 800);
       myFrame.setTitle("Game!");
       myFrame.setVisible(true);
       myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -70,10 +86,55 @@ public class PlayerTerminal {
       t.scheduleAtFixedRate(new TimerTask() {
          @Override
          public void run() {
-            writer.println("look");
+            writer.println("updategui");
             writer.flush();
          }
       }, 20, 20);
+      JPanel panel = map.getPanel();
+      panel.addMouseListener(new MouseAdapter() {
+         @Override
+         public void mouseClicked(MouseEvent me) {
+            if (writer != null) {
+               if (me.getButton() == MouseEvent.BUTTON3) {
+                  int x = me.getX() / PlayerMapDisplay.GRID_SIZE - panel.getWidth() / PlayerMapDisplay.GRID_SIZE / 2;
+                  int y = -me.getY() / PlayerMapDisplay.GRID_SIZE + panel.getHeight() / PlayerMapDisplay.GRID_SIZE / 2;
+                  EasyPopupMenu menu = new EasyPopupMenu();
+                  if (x == 0 && y == 1) {
+                     menu.addButton("Move North", () -> {
+                        writer.println("m n");
+                        writer.flush();
+                     });
+                  }
+                  if (x == 0 && y == -1) {
+                     menu.addButton("Move South", () -> {
+                        writer.println("m s");
+                        writer.flush();
+                     });
+                  }
+                  if (x == 1 && y == 0) {
+                     menu.addButton("Move East", () -> {
+                        writer.println("m e");
+                        writer.flush();
+                     });
+                  }
+                  if (x == -1 && y == 0) {
+                     menu.addButton("Move West", () -> {
+                        writer.println("m w");
+                        writer.flush();
+                     });
+                  }
+                  for (int i = 0; i < 10; i++) {
+                     final int loc = i;
+                     menu.addButton("Play Card " + i, () -> {
+                        writer.println("place " + loc + " " + x + " " + y);
+                        writer.flush();
+                     });
+                  }
+                  menu.show(me.getComponent(), me.getX(), me.getY());
+               }
+            }
+         }
+      });
    }
    
    private OutputStream setupOutput() throws IOException {
@@ -91,6 +152,8 @@ public class PlayerTerminal {
       out.setEditable(false);
       
       new Thread(() -> {
+         StringBuilder hand = new StringBuilder();
+         int handSize = 0;
          Scanner scanner = new Scanner(stream);
          while (scanner.hasNextLine()) {
             try {
@@ -120,6 +183,16 @@ public class PlayerTerminal {
                         }
                      }
                   }
+               } else if (line.startsWith("HAND:")) {
+                  if (line.equals("HAND:BEGIN")) {
+                     hand = new StringBuilder();
+                     handSize = 0;
+                  } else if (line.equals("HAND:END")) {
+                     playerStatus.setText(hand.toString());
+                  } else {
+                     hand.append("   Card " + handSize + ": " + line.substring(5) + "\n");
+                     handSize++;
+                  }
                } else {
                   out.append(line + "\n");
                   Thread.sleep(5);
@@ -130,6 +203,7 @@ public class PlayerTerminal {
                e.printStackTrace();
             }
          }
+         scanner.close();
       }).start();
    }
    
@@ -152,8 +226,20 @@ public class PlayerTerminal {
          @Override
          public void keyTyped(KeyEvent arg0) {
             if (arg0.getKeyChar() == '\n') {
-               writer.print(in.getText());
-               writer.flush();
+               String msg = in.getText();
+               if (msg.equals("clear\n")) {
+                  out.setText("");
+                  in.setText("");
+               } else {
+                  writer.print(msg);
+                  writer.flush();
+                  in.setText("");
+               }
+            }
+            if (arg0.getKeyChar() == '') {
+               out.setText("");
+            }
+            if (arg0.getKeyChar() == '') {
                in.setText("");
             }
          }

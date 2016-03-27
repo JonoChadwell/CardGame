@@ -1,28 +1,23 @@
 package renderer.client;
 
-import game.Game;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.util.ArrayList;
+import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import common.Vector;
 
 public class PlayerMapDisplay {
    private JPanel myPanel;
+   private PrintWriter output;
    
-   private static final int GRID_SIZE = 40;
+   public static final int GRID_SIZE = 40;
    
    private Map<Vector, Entity> visible = new HashMap<>();
    private Map<Vector, Entity> pastVisible = new HashMap<>();
