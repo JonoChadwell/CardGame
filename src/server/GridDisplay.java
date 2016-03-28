@@ -1,4 +1,4 @@
-package renderer.server;
+package server;
 
 import game.Game;
 import game.cards.BasicSoldier;

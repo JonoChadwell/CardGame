@@ -1,4 +1,4 @@
-package renderer.client;
+package client;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

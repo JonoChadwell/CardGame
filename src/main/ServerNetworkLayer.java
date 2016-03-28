@@ -7,7 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
 
-import renderer.server.DisplayManager;
+import server.DisplayManager;
 
 public class ServerNetworkLayer {
    private ServerSocket server;

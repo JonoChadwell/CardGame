@@ -1,4 +1,4 @@
-package renderer.client;
+package client;
 
 import game.entities.Player;
 
@@ -39,6 +39,7 @@ public class PlayerTerminal {
    private Runnable scrollToBottom;
    private PlayerMapDisplay map;
    private PrintWriter writer;
+   private List<Card> hand = new ArrayList<>();
    
    public PlayerTerminal(Player player) throws IOException {
       setupFrame();
@@ -123,13 +124,17 @@ public class PlayerTerminal {
                         writer.flush();
                      });
                   }
-                  for (int i = 0; i < 10; i++) {
+                  for (int i = 0; i < hand.size(); i++) {
                      final int loc = i;
-                     menu.addButton("Play Card " + i, () -> {
+                     menu.addButton("Play " + hand.get(i).getName(), () -> {
                         writer.println("place " + loc + " " + x + " " + y);
                         writer.flush();
                      });
                   }
+                  menu.addButton("Draw Card", () -> {
+                     writer.println("draw");
+                     writer.flush();
+                  });
                   menu.show(me.getComponent(), me.getX(), me.getY());
                }
             }
@@ -152,8 +157,7 @@ public class PlayerTerminal {
       out.setEditable(false);
       
       new Thread(() -> {
-         StringBuilder hand = new StringBuilder();
-         int handSize = 0;
+         List<Card> newHand = new ArrayList<>();
          Scanner scanner = new Scanner(stream);
          while (scanner.hasNextLine()) {
             try {
@@ -185,13 +189,16 @@ public class PlayerTerminal {
                   }
                } else if (line.startsWith("HAND:")) {
                   if (line.equals("HAND:BEGIN")) {
-                     hand = new StringBuilder();
-                     handSize = 0;
+                     newHand = new ArrayList<>();
                   } else if (line.equals("HAND:END")) {
-                     playerStatus.setText(hand.toString());
+                     hand = newHand;
+                     StringBuilder statusText = new StringBuilder();
+                     for (int i = 0; i < hand.size(); i++) {
+                        statusText.append("   Card " + i + ": " + hand.get(i).getText() + "\n");
+                     }
+                     playerStatus.setText(statusText.toString());
                   } else {
-                     hand.append("   Card " + handSize + ": " + line.substring(5) + "\n");
-                     handSize++;
+                     newHand.add(new Card(line.substring(5)));
                   }
                } else {
                   out.append(line + "\n");

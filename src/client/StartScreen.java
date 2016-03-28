@@ -1,4 +1,4 @@
-package renderer.client;
+package client;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;

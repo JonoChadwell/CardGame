@@ -84,26 +84,18 @@ public class Grid {
       return height;
    }
 
-   private static class MovementData {
+   private static class MotionData {
       public Location to;
       public Entity entity;
+      public Action action;
 
-      public MovementData(Location to, Entity entity) {
+      public MotionData(Location to, Entity entity, Action action) {
          this.to = to;
          this.entity = entity;
+         this.action = action;
       }
    }
 
-   private static class SummonData {
-      public Location to;
-      public Entity entity;
-
-      public SummonData(Location to, Entity entity) {
-         this.to = to;
-         this.entity = entity;
-      }
-   }
-   
    private static class AttackData {
       public Attacker source;
 
@@ -113,8 +105,8 @@ public class Grid {
    }
 
    public void performGameTick() {
-      List<MovementData> movements = new ArrayList<>();
-      List<SummonData> summons = new ArrayList<>();
+      List<MotionData> movements = new ArrayList<>();
+      List<MotionData> summons = new ArrayList<>();
       List<AttackData> attacks = new ArrayList<>();
 
       objects.forEach((ent, loc) -> {
@@ -127,8 +119,7 @@ public class Grid {
                Location newLoc = new Location(loc.getRow() - ma.getY(), loc.getCol() + ma.getX());
                try {
                   checkValid(newLoc);
-                  movements.add(new MovementData(newLoc, ent));
-                  ent.actionSuceeded(a);
+                  movements.add(new MotionData(newLoc, ent, a));
                } catch (GameException ex) {
                   ent.actionFailed(a);
                }
@@ -154,9 +145,8 @@ public class Grid {
                      throw new GameException("Target too far away");
                   }
                   checkValid(target);
-                  ent.actionSuceeded(pa);
                   ((Summoner) ent).summonSucceeded(pa.getIndex());
-                  summons.add(new SummonData(target, toPlace));
+                  summons.add(new MotionData(target, toPlace, a));
                } catch (GameException ex) {
                   ent.actionFailed(pa, ex.getMessage());
                }
@@ -165,14 +155,38 @@ public class Grid {
             cooldowns.put(ent, cooldown - 1);
          }
       });
-      //TODO: fix collisions
-      for (SummonData sd : summons) {
+      Map<Location, MotionData> targets = new HashMap<>();
+      Set<MotionData> remove = new HashSet<>();
+      for (MotionData md : movements) {
+         if (targets.containsKey(md.to)) {
+            remove.add(targets.get(md.to));
+            remove.add(md);
+         } else {
+            targets.put(md.to, md);
+         }
+      }
+      for (MotionData sd : summons) {
+         if (targets.containsKey(sd.to)) {
+            remove.add(targets.get(sd.to));
+            remove.add(sd);
+         } else {
+            targets.put(sd.to, sd);
+         }
+      }
+      for (MotionData d : remove) {
+         d.entity.actionFailed(d.action, "Action Bounced");
+      }
+      movements.removeAll(remove);
+      summons.removeAll(remove);
+      
+      for (MotionData md : movements) {
+         objects.put(md.entity, md.to);
+         md.entity.actionSuceeded(md.action);
+      }
+      for (MotionData sd : summons) {
          objects.put(sd.entity, sd.to);
          cooldowns.put(sd.entity, sd.entity.getSummoningDuration());
-      }
-      //TODO: fix collisions
-      for (MovementData md : movements) {
-         objects.put(md.entity, md.to);
+         sd.entity.actionSuceeded(sd.action);
       }
       for (AttackData ad : attacks) {
          FactionMember af;
@@ -216,9 +230,6 @@ public class Grid {
             if (!playerMaps.containsKey(faction)) {
                playerMaps.put(faction, new HashMap<>());
             }
-            
-            
-            
             if (objects.containsKey(faction)) {
                Location playerLoc = objects.get(faction);
                Map<Location, Entity> entityVisionRaw = getVisibleEntities(ent);

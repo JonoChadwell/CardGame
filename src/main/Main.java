@@ -1,9 +1,9 @@
 package main;
 
+import client.PlayerTerminal;
 import game.Game;
 import game.entities.Player;
-import renderer.client.PlayerTerminal;
-import renderer.server.DisplayManager;
+import server.DisplayManager;
 
 public class Main {
    public static void main(String args[]) throws Exception {
@@ -13,7 +13,7 @@ public class Main {
       playerTwo.setName("Americo");
       Game game = new Game(playerOne, playerTwo);
       game.startGame();
-      
+
       new PlayerTerminal(playerOne);
       new PlayerTerminal(playerTwo);
    }
